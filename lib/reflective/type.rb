@@ -11,10 +11,12 @@ module Reflective
       @constant = constant
     end
 
+    attr_reader :constant
+
     def constants
       constants = Module.instance_method(:constants).bind(@constant).call(false)
       constants.map do |const|
-        [const, @constant.const_get(const, false)]
+        [const, constant.const_get(const, false)]
       end.to_h
     end
 
@@ -24,31 +26,35 @@ module Reflective
       methods = []
 
       if kind.include?(:instance)
-        methods.concat(methods_for(@constant, own: own, visibility: visibility))
+        methods.concat(methods_for(constant, own: own, visibility: visibility))
       end
 
       if kind.include?(:class)
-        methods.concat(methods_for(@constant.singleton_class, own: own, visibility: visibility))
+        methods.concat(methods_for(constant.singleton_class, own: own, visibility: visibility))
       end
 
       methods
     end
 
     def name
-      Module.instance_method(:name).bind(@constant).call
+      Module.instance_method(:name).bind(constant).call
     end
 
     def class
-      Kernel.instance_method(:class).bind(@constant).call
+      Kernel.instance_method(:class).bind(constant).call
     end
 
     def superclass
-      return unless Class == @constant
-      Class.instance_method(:superclass).bind(@constant).call
+      return unless Class == constant
+      Class.instance_method(:superclass).bind(constant).call
     end
 
     def equal?(other)
-      BasicObject.instance_method(:equal?).bind(@constant).call(other)
+      BasicObject.instance_method(:equal?).bind(constant).call(other)
+    end
+
+    def ==(other)
+      constant == other.constant
     end
 
     def public?

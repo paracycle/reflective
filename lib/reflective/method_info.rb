@@ -5,10 +5,14 @@ module Reflective
       @visibility = visibility
     end
 
-    attr_reader :visibility
+    attr_reader :method, :visibility
+
+    def name
+      @name ||= UnboundMethod.instance_method(:name).bind(method).call
+    end
 
     def owner
-      @method.owner
+      @owner ||= method.owner
     end
 
     def public?
@@ -25,6 +29,10 @@ module Reflective
 
     def static?
       Module.instance_method(:singleton_class?).bind(owner).call
+    end
+
+    def <=>(other)
+      name <=> other.name
     end
   end
 end
